@@ -1,0 +1,34 @@
+Activity 06 — Test Plan
+
+Objective:
+Compare the direct OT simulation path (port 5020) with the guarded
+simulation path (port 5021) using the instructor-approved test scripts.
+
+Environment:
+- Authorized local training simulation only.
+- Direct path: 127.0.0.1:5020
+- Guarded path: 127.0.0.1:5021
+- Dashboard: http://127.0.0.1:8080
+
+Scenarios:
+1. Attack Hold — attack_hold.py
+2. False Data Injection — false_data_attack.py
+3. Slow Drift — slow_drift_attack.py
+
+Configured process ranges:
+- Temperature: 60–75 degrees C
+- Pressure: 30–40 bar
+- H2 flow: 50–150 Nm3/h
+
+Procedure:
+- Run one approved scenario at a time against the specified path.
+- Record complete terminal output.
+- Observe dashboard values and guard status.
+- Inspect guard logs for entries relevant to the current test.
+- Verify post-test readings and recovery.
+- Preserve screenshots and results without assuming that protection
+  succeeded unless supported by observed evidence.
+
+Safety:
+- Keep the lab isolated and use only the approved local simulation.
+- Do not run the DoS scenario without explicit instructor approval.

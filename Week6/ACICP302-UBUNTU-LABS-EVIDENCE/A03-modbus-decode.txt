@@ -1,0 +1,38 @@
+ACICP302 Activity 03: Manual Modbus/TCP Decode
+Analysis time: 2026-10-14T03:51:43.565102+01:00
+Source: previously captured Wireshark bytes
+
+REQUEST
+Raw bytes: 20 c7 00 00 00 06 01 03 00 00 00 04
+Transaction ID: 0x20c7
+Protocol ID: 0
+Length: 6
+Unit ID: 1
+Function code: 0x03
+Starting register address: 0
+Register quantity: 4
+
+RESPONSE
+Raw bytes: 20 c7 00 00 00 0b 01 03 08 02 89 01 62 04 95 00 00
+Transaction ID: 0x20c7
+Protocol ID: 0
+Length: 11
+Unit ID: 1
+Function code: 0x03
+Data byte count: 8
+Register values: [649, 354, 1173, 0]
+
+REGISTER INTERPRETATION
+Register 0: 649 = 64.9 °C
+Register 1: 354 = 35.4 bar
+Register 2: 1173 = 117.3 Nm³/h
+Register 3: 0 = alarm inactive
+
+VALIDATION
+Transaction IDs match: True
+Function codes match: True
+Request asks for four registers: True
+Response contains four registers: True
+
+NOTE: This is offline decoding of supplied bytes.
+It does not independently verify packet endpoints or timestamps.

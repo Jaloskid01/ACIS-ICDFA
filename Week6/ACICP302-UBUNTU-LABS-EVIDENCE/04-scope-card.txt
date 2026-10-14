@@ -1,0 +1,15 @@
+ACICP302 — Activity 04: Safe Discovery and Exposure Mapping
+
+VM: icdfa-VMware-Virtual-Platform
+Activity date: 14 October 2026
+Target: Local loopback only (127.0.0.1)
+Authorized source: labs/ot-security/student-lab-source/
+Permitted methods: Source inspection and read-only local service inventory
+Time window: 14 October 2026, approximately 11:41–11:49 WAT
+Expected state: Existing lab services remain unchanged
+Prohibited: External targets, subnet scans, attack scripts, process-value
+changes, and unauthorized service changes
+Stop condition: Unexpected listener, non-loopback application binding,
+unexpected process behaviour, or discrepancy requiring instructor review
+Recovery action: Stop further activity, preserve evidence, and notify the
+instructor. Do not restart or alter services without authorization.

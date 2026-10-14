@@ -1,0 +1,228 @@
+     1	import logging
+     2	import threading
+     3	import time
+     4	import json
+     5	import os
+     6	from collections import deque
+     7	
+     8	from pymodbus.client import ModbusTcpClient
+     9	from pymodbus.datastore import (
+    10	    ModbusSequentialDataBlock,
+    11	    ModbusServerContext,
+    12	    ModbusSlaveContext,
+    13	)
+    14	from pymodbus.server import StartTcpServer
+    15	
+    16	logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+    17	log = logging.getLogger("guard")
+    18	
+    19	PLANT_HOST = "127.0.0.1"
+    20	PLANT_PORT = 5020
+    21	HOST = "127.0.0.1"
+    22	GUARD_PORT = 5021
+    23	
+    24	REG_TEMP = 0
+    25	REG_PRESSURE = 1
+    26	REG_FLOW = 2
+    27	REG_ALARM = 3
+    28	
+    29	TEMP_RANGE     = (600, 750)   # tenths of a degree C
+    30	PRESSURE_RANGE = (300, 400)   # tenths of a bar
+    31	FLOW_RANGE     = (500, 1500)  # tenths of Nm3/h
+    32	
+    33	MAX_TEMP_STEP      = 30
+    34	MAX_PRESSURE_STEP  = 50
+    35	MAX_FLOW_STEP       = 100
+    36	
+    37	# --- Rolling-baseline drift detection ---
+    38	# Instead of comparing write N to write N-1 (which a slow-ramp attack can
+    39	# always stay under), we compare the CURRENT accepted value to the accepted
+    40	# value from DRIFT_WINDOW writes ago. This catches cumulative creep even
+    41	# when every individual step looks small.
+    42	DRIFT_WINDOW              = 3   # was 6 — shrinking cuts the attacker's runway in half
+    43	DRIFT_THRESHOLD_TEMP      = 20  # 2.0C cumulative over the window
+    44	DRIFT_THRESHOLD_PRESSURE  = 20  # 2.0 bar cumulative over the window
+    45	DRIFT_THRESHOLD_FLOW      = 40  # 4.0 Nm3/h cumulative over the window
+    46	
+    47	EVENT_LOG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "events.jsonl")
+    48	event_log_lock = threading.Lock()
+    49	
+    50	
+    51	def log_event(reason):
+    52	    event = {"timestamp": time.strftime("%Y-%m-%d %H:%M:%S"), "reason": reason}
+    53	    with event_log_lock:
+    54	        try:
+    55	            with open(EVENT_LOG_FILE, "a") as f:
+    56	                f.write(json.dumps(event) + "\n")
+    57	        except Exception as e:
+    58	            log.error("Failed to write event log: %s", e)
+    59	
+    60	
+    61	class GuardedContext(ModbusSlaveContext):
+    62	    """
+    63	    A Modbus write-through firewall.
+    64	
+    65	    Design rule: this class NEVER accepts a value it hasn't itself validated.
+    66	    - Absolute range check: hard reject outside physical safe limits.
+    67	    - Step check: hard reject any single write that moves too far too fast.
+    68	    - Rolling-baseline drift check: compares the CURRENT accepted value to
+    69	      the accepted value from N writes ago, so an attacker cannot bypass
+    70	      detection by taking many small steps.
+    71	
+    72	    On any rejection: the write is dropped entirely. Nothing is forwarded
+    73	    to the plant, nothing is written to the local mirror. The guard's
+    74	    exposed state (what the guarded dashboard sees) simply does not move.
+    75	    """
+    76	
+    77	    def __init__(self, plant_client, *args, **kwargs):
+    78	        super().__init__(*args, **kwargs)
+    79	        self.plant_client = plant_client
+    80	        self.lock = threading.Lock()
+    81	        # Rolling baseline histories store ACCEPTED values only, not
+    82	        # attempted writes. That's what makes this a true baseline of
+    83	        # "what the plant has actually been allowed to do."
+    84	        self.temp_accepted_history     = deque(maxlen=DRIFT_WINDOW)
+    85	        self.pressure_accepted_history = deque(maxlen=DRIFT_WINDOW)
+    86	        self.flow_accepted_history     = deque(maxlen=DRIFT_WINDOW)
+    87	
+    88	    def _check(self, address, requested, current, value_range, max_step,
+    89	               drift_history, drift_threshold, unit_label, unit_divisor):
+    90	        reasons = []
+    91	
+    92	        if not (value_range[0] <= requested <= value_range[1]):
+    93	            reasons.append(
+    94	                f"{requested/unit_divisor:.1f}{unit_label} outside safe range "
+    95	                f"{value_range[0]/unit_divisor:.1f}-{value_range[1]/unit_divisor:.1f}{unit_label}"
+    96	            )
+    97	
+    98	        step = abs(requested - current)
+    99	        if step > max_step:
+   100	            reasons.append(
+   101	                f"step of {step/unit_divisor:.1f}{unit_label} exceeds max "
+   102	                f"{max_step/unit_divisor:.1f}{unit_label}"
+   103	            )
+   104	
+   105	        if len(drift_history) == DRIFT_WINDOW:
+   106	            drift = requested - drift_history[0]
+   107	            if abs(drift) > drift_threshold:
+   108	                reasons.append(
+   109	                    f"cumulative drift of {drift/unit_divisor:.1f}{unit_label} "
+   110	                    f"over last {DRIFT_WINDOW} accepted writes exceeds "
+   111	                    f"{drift_threshold/unit_divisor:.1f}{unit_label} limit"
+   112	                )
+   113	
+   114	        return reasons
+   115	
+   116	    def setValues(self, fc_as_hex, address, values):
+   117	        requested = values[0]
+   118	        reasons = []
+   119	
+   120	        if address == REG_TEMP:
+   121	            current = self.getValues(3, REG_TEMP, count=1)[0]
+   122	            reasons = self._check(address, requested, current, TEMP_RANGE,
+   123	                                   MAX_TEMP_STEP, self.temp_accepted_history,
+   124	                                   DRIFT_THRESHOLD_TEMP, "C", 10)
+   125	        elif address == REG_PRESSURE:
+   126	            current = self.getValues(3, REG_PRESSURE, count=1)[0]
+   127	            reasons = self._check(address, requested, current, PRESSURE_RANGE,
+   128	                                   MAX_PRESSURE_STEP, self.pressure_accepted_history,
+   129	                                   DRIFT_THRESHOLD_PRESSURE, " bar", 10)
+   130	        elif address == REG_FLOW:
+   131	            current = self.getValues(3, REG_FLOW, count=1)[0]
+   132	            reasons = self._check(address, requested, current, FLOW_RANGE,
+   133	                                   MAX_FLOW_STEP, self.flow_accepted_history,
+   134	                                   DRIFT_THRESHOLD_FLOW, " Nm3/h", 10)
+   135	        else:
+   136	            # Unknown/alarm register — allow passthrough of writes (e.g. resets)
+   137	            with self.lock:
+   138	                try:
+   139	                    self.plant_client.write_register(address, requested, slave=1)
+   140	                except Exception as e:
+   141	                    log.error("Forward failed: %s", e)
+   142	            super().setValues(fc_as_hex, address, values)
+   143	            return
+   144	
+   145	        if reasons:
+   146	            reason_text = "; ".join(reasons)
+   147	            log.warning("BLOCKED write to reg %s: %s", address, reason_text)
+   148	            log_event(reason_text)
+   149	            # Option A behavior: reject completely. Do not touch the plant,
+   150	            # do not touch the local mirror, do not append to drift history.
+   151	            # The last known-safe accepted value remains authoritative.
+   152	            return
+   153	
+   154	        # Accepted — forward to the real plant AND update local mirror AND
+   155	        # record it in the rolling baseline history.
+   156	        with self.lock:
+   157	            try:
+   158	                self.plant_client.write_register(address, requested, slave=1)
+   159	            except Exception as e:
+   160	                log.error("Forward failed: %s", e)
+   161	        super().setValues(fc_as_hex, address, values)
+   162	
+   163	        if address == REG_TEMP:
+   164	            self.temp_accepted_history.append(requested)
+   165	        elif address == REG_PRESSURE:
+   166	            self.pressure_accepted_history.append(requested)
+   167	        elif address == REG_FLOW:
+   168	            self.flow_accepted_history.append(requested)
+   169	
+   170	
+   171	def sync_safe_reads(store, plant_client, lock, stop_event):
+   172	    """
+   173	    Periodically reads the real plant's telemetry and mirrors it into the
+   174	    guard's exposed state — but ONLY if every value read is within the
+   175	    absolute safe range. This keeps normal plant drift (temperature
+   176	    wandering a bit under real physics) visible on the guarded dashboard,
+   177	    while guaranteeing an attacker who writes directly to the plant's own
+   178	    port (bypassing the guard entirely) can never have those corrupted
+   179	    values bleed into the guard's mirror.
+   180	    """
+   181	    while not stop_event.is_set():
+   182	        with lock:
+   183	            try:
+   184	                result = plant_client.read_holding_registers(0, 4, slave=1)
+   185	                if not result.isError():
+   186	                    regs = result.registers
+   187	                    t, p, f = regs[REG_TEMP], regs[REG_PRESSURE], regs[REG_FLOW]
+   188	                    if (TEMP_RANGE[0]     <= t <= TEMP_RANGE[1] and
+   189	                        PRESSURE_RANGE[0] <= p <= PRESSURE_RANGE[1] and
+   190	                        FLOW_RANGE[0]     <= f <= FLOW_RANGE[1]):
+   191	                        ModbusSlaveContext.setValues(store, 3, 0, list(regs))
+   192	                        store.temp_accepted_history.append(t)
+   193	                        store.pressure_accepted_history.append(p)
+   194	                        store.flow_accepted_history.append(f)
+   195	            except Exception as e:
+   196	                log.error("Sync error: %s", e)
+   197	        time.sleep(1.0)
+   198	
+   199	
+   200	def main():
+   201	    plant_client = ModbusTcpClient(PLANT_HOST, port=PLANT_PORT)
+   202	    plant_client.connect()
+   203	
+   204	    block = ModbusSequentialDataBlock(0, [670, 340, 900, 0] + [0] * 96)
+   205	    store = GuardedContext(plant_client, hr=block, zero_mode=True)
+   206	    context = ModbusServerContext(slaves=store, single=True)
+   207	
+   208	    stop_event = threading.Event()
+   209	    sync_thread = threading.Thread(
+   210	        target=sync_safe_reads,
+   211	        args=(store, plant_client, store.lock, stop_event),
+   212	        daemon=True,
+   213	    )
+   214	    sync_thread.start()
+   215	
+   216	    log.info("Guard listening on %s:%s — protecting plant at %s:%s",
+   217	             HOST, GUARD_PORT, PLANT_HOST, PLANT_PORT)
+   218	    try:
+   219	        StartTcpServer(context=context, address=(HOST, GUARD_PORT))
+   220	    except KeyboardInterrupt:
+   221	        pass
+   222	    finally:
+   223	        stop_event.set()
+   224	        plant_client.close()
+   225	
+   226	
+   227	if __name__ == "__main__":
+   228	    main()

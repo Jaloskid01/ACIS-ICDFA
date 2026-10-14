@@ -1,0 +1,22 @@
+ACICP302 Activity 04 — Evidence-Based Conclusion
+Date: 14 October 2026
+VM: icdfa-VMware-Virtual-Platform
+
+Source inspection confirmed explicit loopback configuration for the
+plant Modbus/TCP service (127.0.0.1:5020), direct dashboard
+(127.0.0.1:8080), guard endpoint (127.0.0.1:5021), and guarded
+dashboard (127.0.0.1:8081).
+
+The recorded read-only TCP inventory showed listeners on 127.0.0.1:5020
+and 127.0.0.1:8081. No listeners appeared on ports 8080 or 5021 at
+that time. Local DNS and printing listeners were also present.
+
+The observations support the intended loopback scope for the application
+listeners that were active. They do not prove that every route is secure,
+that guard rules are complete, or that services will always bind safely.
+The risk register therefore separates observed evidence from potential
+consequences that were not tested.
+
+Activity scope was limited to source inspection and read-only local
+inventory. No external targets or attack scripts were used, and no
+process values or services were changed.

@@ -1,0 +1,60 @@
+=== Event-log configuration ===
+44-DRIFT_THRESHOLD_PRESSURE  = 20  # 2.0 bar cumulative over the window
+45-DRIFT_THRESHOLD_FLOW      = 40  # 4.0 Nm3/h cumulative over the window
+46-
+47:EVENT_LOG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "events.jsonl")
+48-event_log_lock = threading.Lock()
+49-
+50-
+--
+52-    event = {"timestamp": time.strftime("%Y-%m-%d %H:%M:%S"), "reason": reason}
+53-    with event_log_lock:
+54-        try:
+55:            with open(EVENT_LOG_FILE, "a") as f:
+56-                f.write(json.dumps(event) + "\n")
+57-        except Exception as e:
+58-            log.error("Failed to write event log: %s", e)
+
+=== Event/logging operations ===
+1:import logging
+16:logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+17:log = logging.getLogger("guard")
+38:# Instead of comparing write N to write N-1 (which a slow-ramp attack can
+40:# value from DRIFT_WINDOW writes ago. This catches cumulative creep even
+47:EVENT_LOG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "events.jsonl")
+48:event_log_lock = threading.Lock()
+51:def log_event(reason):
+52:    event = {"timestamp": time.strftime("%Y-%m-%d %H:%M:%S"), "reason": reason}
+53:    with event_log_lock:
+55:            with open(EVENT_LOG_FILE, "a") as f:
+56:                f.write(json.dumps(event) + "\n")
+58:            log.error("Failed to write event log: %s", e)
+63:    A Modbus write-through firewall.
+67:    - Step check: hard reject any single write that moves too far too fast.
+69:      the accepted value from N writes ago, so an attacker cannot bypass
+72:    On any rejection: the write is dropped entirely. Nothing is forwarded
+82:        # attempted writes. That's what makes this a true baseline of
+93:            reasons.append(
+100:            reasons.append(
+108:                reasons.append(
+110:                    f"over last {DRIFT_WINDOW} accepted writes exceeds "
+136:            # Unknown/alarm register — allow passthrough of writes (e.g. resets)
+139:                    self.plant_client.write_register(address, requested, slave=1)
+147:            log.warning("BLOCKED write to reg %s: %s", address, reason_text)
+148:            log_event(reason_text)
+150:            # do not touch the local mirror, do not append to drift history.
+158:                self.plant_client.write_register(address, requested, slave=1)
+164:            self.temp_accepted_history.append(requested)
+166:            self.pressure_accepted_history.append(requested)
+168:            self.flow_accepted_history.append(requested)
+171:def sync_safe_reads(store, plant_client, lock, stop_event):
+177:    while guaranteeing an attacker who writes directly to the plant's own
+181:    while not stop_event.is_set():
+192:                        store.temp_accepted_history.append(t)
+193:                        store.pressure_accepted_history.append(p)
+194:                        store.flow_accepted_history.append(f)
+208:    stop_event = threading.Event()
+211:        args=(store, plant_client, store.lock, stop_event),
+223:        stop_event.set()
+
+=== Matching files ===

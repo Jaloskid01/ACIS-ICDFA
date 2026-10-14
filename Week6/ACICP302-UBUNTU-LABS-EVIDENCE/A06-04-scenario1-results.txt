@@ -1,0 +1,89 @@
+Activity 06 — Scenario 1: Attack Hold
+
+Script: attack_hold.py
+Source: student-lab-source/plant_sim/attack_hold.py
+
+Course-prescribed commands:
+python3 attack_hold.py 5020
+python3 attack_hold.py 5021
+
+Starting baseline:
+Direct: 62.9°C, 35.5 bar, 143.5 Nm³/h
+Guarded: 62.3°C, 35.4 bar, 141.0 Nm³/h
+
+Expected outcome:
+Direct path: observe whether the out-of-range pressure
+write reaches the simulated plant.
+Guarded path: observe whether the guard rejects the
+out-of-range pressure write.
+
+Observed direct-path result: PENDING
+Observed guarded-path result: PENDING
+Dashboard observations: PENDING
+Guard event evidence: PENDING
+Recovery verification: PENDING
+Conclusion: PENDING
+
+Observed direct-path result:
+The attack_hold.py script reported 76 writes, a peak pressure of
+95.0 bar at t=0.00 s, and 76/76 readings outside the stated
+30.0–40.0 bar safe range. The script reported:
+"UNSAFE VALUE REACHED THE PLANT."
+
+Interpretation:
+The direct-path test demonstrated that the simulated plant accepted
+or reflected the unsafe pressure value according to the script's
+readings. This indicates that the direct path did not prevent the
+tested unsafe write.
+
+Recovery verification: PENDING
+Guarded-path result: PENDING
+
+Recovery observation:
+Direct dashboard: 65.6°C, 35.4 bar, 96.4 Nm³/h.
+Guarded dashboard: 66.3°C, 34.7 bar, 95.4 Nm³/h.
+All displayed values were within the documented operating ranges.
+
+Event-log check:
+The expected file student-lab-source/plant_sim/events.jsonl
+did not exist at the time of inspection. Guard event logging remains
+unverified; the missing file is not evidence that no guard action occurred.
+
+Observed guarded-path result:
+Command: python3 attack_hold.py 5021
+Writes sent: 76
+Peak pressure observed: 31.7 bar at t=7.35s
+Readings outside safe range: 0/76 (0%)
+Script result: value never left safe range — attack fully contained.
+
+Scenario 1 conclusion:
+The direct-path test reported a peak of 95.0 bar and 76/76 readings
+outside the 30.0–40.0 bar safe range. The guarded-path test reported
+a peak of 31.7 bar and 0/76 readings outside that range. These results
+support containment of this specific attack through the guarded path.
+General guard effectiveness is not established by one test.
+
+Event logging limitation:
+No events.jsonl file was found in the searched source tree.
+Guard event logging remains unverified.
+
+Final recovery verification: PENDING
+
+Guard detection-log evidence:
+The guarded dashboard displayed repeated BLOCKED entries for the
+attempted 95.0-bar write. The displayed reasons were:
+1. Absolute pressure outside the 30.0–40.0 bar safe range.
+2. Write step of 63.3 bar exceeded the 5.0 bar maximum.
+3. Cumulative drift of 63.5 bar over the last 3 accepted writes
+   exceeded the 2.0 bar limit.
+
+Seven BLOCKED entries were visible in the supplied observation.
+These are displayed log entries and are not assumed to be seven
+unique attack events.
+
+Combined conclusion:
+The direct-path test reported that the unsafe value reached the
+plant, while the guarded-path test reported no readings outside
+the safe range and the dashboard logged the attempted write as
+BLOCKED. This supports successful containment of this specific
+attack under the tested conditions.

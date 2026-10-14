@@ -1,0 +1,15 @@
+/home/icdfa/~/ACICP302/ACICP302ICS-Network-Security-and-Attacks/labs/ot-security/student-lab-source/plant_sim/plant.py:26:HOST = "127.0.0.1"
+/home/icdfa/~/ACICP302/ACICP302ICS-Network-Security-and-Attacks/labs/ot-security/student-lab-source/plant_sim/plant.py:27:PORT = 5020
+/home/icdfa/~/ACICP302/ACICP302ICS-Network-Security-and-Attacks/labs/ot-security/student-lab-source/plant_sim/dashboard.py:6:TARGET_HOST = "127.0.0.1"
+/home/icdfa/~/ACICP302/ACICP302ICS-Network-Security-and-Attacks/labs/ot-security/student-lab-source/plant_sim/dashboard.py:7:TARGET_PORT = 5020
+/home/icdfa/~/ACICP302/ACICP302ICS-Network-Security-and-Attacks/labs/ot-security/student-lab-source/plant_sim/dashboard.py:201:    client = ModbusTcpClient(TARGET_HOST, port=TARGET_PORT)
+/home/icdfa/~/ACICP302/ACICP302ICS-Network-Security-and-Attacks/labs/ot-security/student-lab-source/plant_sim/dashboard.py:224:    app.run(host="127.0.0.1",port=8080)
+/home/icdfa/~/ACICP302/ACICP302ICS-Network-Security-and-Attacks/labs/ot-security/student-lab-source/plant_sim/guard.py:19:PLANT_HOST = "127.0.0.1"
+/home/icdfa/~/ACICP302/ACICP302ICS-Network-Security-and-Attacks/labs/ot-security/student-lab-source/plant_sim/guard.py:20:PLANT_PORT = 5020
+/home/icdfa/~/ACICP302/ACICP302ICS-Network-Security-and-Attacks/labs/ot-security/student-lab-source/plant_sim/guard.py:21:HOST = "127.0.0.1"
+/home/icdfa/~/ACICP302/ACICP302ICS-Network-Security-and-Attacks/labs/ot-security/student-lab-source/plant_sim/guard.py:22:GUARD_PORT = 5021
+/home/icdfa/~/ACICP302/ACICP302ICS-Network-Security-and-Attacks/labs/ot-security/student-lab-source/plant_sim/guard.py:201:    plant_client = ModbusTcpClient(PLANT_HOST, port=PLANT_PORT)
+/home/icdfa/~/ACICP302/ACICP302ICS-Network-Security-and-Attacks/labs/ot-security/student-lab-source/plant_sim/dashboard_guarded.py:8:TARGET_HOST = "127.0.0.1"
+/home/icdfa/~/ACICP302/ACICP302ICS-Network-Security-and-Attacks/labs/ot-security/student-lab-source/plant_sim/dashboard_guarded.py:9:TARGET_PORT = 5021
+/home/icdfa/~/ACICP302/ACICP302ICS-Network-Security-and-Attacks/labs/ot-security/student-lab-source/plant_sim/dashboard_guarded.py:228:    client = ModbusTcpClient(TARGET_HOST, port=TARGET_PORT)
+/home/icdfa/~/ACICP302/ACICP302ICS-Network-Security-and-Attacks/labs/ot-security/student-lab-source/plant_sim/dashboard_guarded.py:265:    app.run(host="127.0.0.1",port=8081)

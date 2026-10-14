@@ -1,0 +1,21 @@
+Activity 06 — Script Review
+Date: 14 October 2026
+
+1. attack_hold.py
+Requests pressure register value 950 (95.0 bar) repeatedly for 8 seconds.
+The documented safe pressure range is 30.0–40.0 bar.
+
+2. false_data_attack.py
+Performs six batches of writes requesting:
+Temperature: 110.0°C
+Pressure: 55.0 bar
+Flow: 200.0 Nm³/h
+These values exceed the documented guard ranges.
+
+3. slow_drift_attack.py
+Reads the current pressure and performs 12 incremental writes,
+increasing the requested pressure by 1.0 bar per step, with
+a two-second delay between steps.
+
+Status: Source reviewed only. No demonstration executed.
+Runtime blocking behavior and recovery remain unverified.

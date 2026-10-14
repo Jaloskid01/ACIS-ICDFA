@@ -1,0 +1,7 @@
+Activity 05 final service status
+Wed Oct 14 04:22:26 PM WAT 2026
+Plant and guard listeners:
+LISTEN 0      100        127.0.0.1:5021      0.0.0.0:*    users:(("python3",pid=62025,fd=7))
+LISTEN 0      100        127.0.0.1:5020      0.0.0.0:*    users:(("python3",pid=32631,fd=6))
+
+Runtime limitation: guard listener verified; rejection behavior and event logging not yet verified in a controlled runtime test.

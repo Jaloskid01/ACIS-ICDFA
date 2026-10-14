@@ -1,0 +1,25 @@
+Activity 06 — Scenario 3: Slow Drift
+
+Direct path:
+Command: python3 slow_drift_attack.py 5020
+Starting pressure: 38.2 bar
+Requested pressure range: 39.2–50.2 bar
+Reported actual pressure range: 39.5–40.0 bar
+No reported actual pressure exceeded the configured 40-bar upper limit.
+
+Guarded path:
+Command: python3 slow_drift_attack.py 5021
+Starting pressure: 39.3 bar
+Requested pressure range: 40.3–51.3 bar
+Reported actual pressure range: 37.9–39.3 bar
+No reported actual pressure exceeded the configured 40-bar upper limit.
+
+Guarded recovery dashboard:
+Temperature: 71.3°C
+Pressure: 37.1 bar
+H2 flow: 139.4 Nm3/h
+Status: PROTECTED
+
+All recovery readings were within the configured ranges.
+The displayed guard log contained earlier entries from previous scenarios;
+no new Slow Drift-specific log entry was confirmed.

@@ -1,0 +1,15 @@
+ACICP302 Activity 04 — Local Service Inventory
+VM: icdfa-VMware-Virtual-Platform
+Local time: Wed Oct 14 11:49:20 AM WAT 2026
+
+Loopback interface:
+lo               UNKNOWN        127.0.0.1/8 ::1/128 
+
+Listening TCP services:
+State  Recv-Q Send-Q Local Address:Port Peer Address:PortProcess                            
+LISTEN 0      128        127.0.0.1:8081      0.0.0.0:*    users:(("python3",pid=31395,fd=4))
+LISTEN 0      4096      127.0.0.54:53        0.0.0.0:*                                      
+LISTEN 0      4096   127.0.0.53%lo:53        0.0.0.0:*                                      
+LISTEN 0      100        127.0.0.1:5020      0.0.0.0:*    users:(("python3",pid=32631,fd=6))
+LISTEN 0      4096       127.0.0.1:631       0.0.0.0:*                                      
+LISTEN 0      4096           [::1]:631          [::]:*                                      

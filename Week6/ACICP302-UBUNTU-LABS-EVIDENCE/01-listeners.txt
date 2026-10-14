@@ -1,0 +1,4 @@
+tcp   LISTEN 0      128                           127.0.0.1:8081       0.0.0.0:*    users:(("python3",pid=5142,fd=4)) 
+tcp   LISTEN 0      128                           127.0.0.1:8080       0.0.0.0:*    users:(("python3",pid=5138,fd=4)) 
+tcp   LISTEN 0      100                           127.0.0.1:5021       0.0.0.0:*    users:(("python3",pid=5133,fd=7)) 
+tcp   LISTEN 0      100                           127.0.0.1:5020       0.0.0.0:*    users:(("python3",pid=5125,fd=6)) 

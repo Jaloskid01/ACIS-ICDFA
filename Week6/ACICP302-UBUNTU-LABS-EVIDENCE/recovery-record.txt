@@ -1,0 +1,25 @@
+ACTIVITY 07 — RECOVERY AND CLEANUP RECORD
+
+Learner: Aminu Ibrahim Jalo
+Registration number: C11/26/ACIS/17359
+Course source commit: 2a66f9bcf253eb3fe31c68ad52794cd535421da8
+Canonical source: labs/ot-security/student-lab-source/
+
+1. Service cleanup
+Recorded verification time: 2026-10-14 19:43:24 WAT
+Command: sudo ss -ltnp | grep -E ':(5020|5021|8080)\b'
+Observed result: No listeners found on ports 5020, 5021 or 8080.
+
+2. Snapshot and recovery status
+Snapshot restoration: NOT YET COMPLETED OR CONFIRMED.
+Lab services: Stopped, with the listener check recorded above.
+Safe internal process state: Not independently verified after cleanup.
+Next action: Follow the instructor's Activity 07 recovery instructions and restore the assigned snapshot if required. Record the actual action and verification only after completion.
+
+3. Evidence availability
+Activity 06 scenario results: ../A06-evidence/
+Screenshots: To be inserted manually by the learner; no screenshot files included.
+Packet captures: None found in the searched Activity 06 and Activity 07 folders.
+
+4. Submission status
+Recovery verification remains pending. Do not sign the safety declaration or claim full recovery until the required recovery procedure and safe-state checks are complete.

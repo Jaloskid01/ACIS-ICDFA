@@ -1,0 +1,26 @@
+Activity 06 — Scenario 2: False Data Injection
+
+Command: python3 false_data_attack.py 5020
+
+Observed results:
+Peak temperature: 110.0°C (safe range: 60.0–75.0°C)
+Peak pressure: 55.0 bar (safe range: 30.0–40.0 bar)
+Peak flow: 200.0 Nm³/h (normal range: 50.0–150.0 Nm³/h)
+Unsafe readings: temperature 6/6, pressure 6/6, flow 6/6.
+Script result: UNSAFE VALUES REACHED THE PLANT.
+
+Guarded-path result: PENDING
+Recovery verification: PENDING
+
+Guarded-path test
+Command: python3 false_data_attack.py 5021
+
+Observed results:
+Peak temperature: 71.7°C (safe range: 60.0–75.0°C)
+Peak pressure: 35.2 bar (safe range: 30.0–40.0 bar)
+Peak flow: 142.1 Nm³/h (normal range: 50.0–150.0 Nm³/h)
+Unsafe readings: temperature 0/6, pressure 0/6, flow 0/6.
+Script result: ATTACK FULLY CONTAINED.
+
+Interpretation:
+The direct-path test reported unsafe temperature, pressure and flow readings in all six batches. The guarded-path test reported no unsafe readings across the six batches. This supports containment for this specific test; it does not prove that the guard blocks every possible attack.

@@ -1,0 +1,101 @@
+ACTIVITY 06 — ICS NETWORK SECURITY AND ATTACKS
+Final Results Report
+
+1. Objective
+Compare the direct OT simulation path on port 5020 with the guarded
+path on port 5021 using the approved lab scenarios. Observe process
+values, guard behavior, and post-test recovery.
+
+2. Environment and configured limits
+Direct path: 127.0.0.1:5020
+Guarded path: 127.0.0.1:5021
+Dashboard: http://127.0.0.1:8080
+Temperature range: 60–75 °C
+Pressure range: 30–40 bar
+H2 flow range: 50–150 Nm3/h
+
+3. Scenario 1 — Attack Hold
+Direct path:
+- 76 writes sent.
+- Peak pressure: 95.0 bar.
+- Out-of-range readings: 76/76.
+- Script reported that an unsafe value reached the plant.
+
+Guarded path:
+- 76 writes sent.
+- Peak pressure: 31.7 bar.
+- Out-of-range readings: 0/76.
+- Script reported that the attack was contained.
+- Dashboard log showed BLOCKED entries for 95.0 bar.
+
+4. Scenario 2 — False Data Injection
+Direct path:
+- Peak temperature: 110.0 °C.
+- Peak pressure: 55.0 bar.
+- Peak flow: 200.0 Nm3/h.
+- Unsafe readings: 6/6 for each measurement.
+- Script reported that unsafe values reached the plant.
+
+Guarded path:
+- Peak temperature: 71.7 °C.
+- Peak pressure: 35.2 bar.
+- Peak flow: 142.1 Nm3/h.
+- Unsafe readings: 0/6 for each measurement.
+- Script reported that the attack was contained.
+- Dashboard log showed BLOCKED entries for the injected values.
+
+5. Scenario 3 — Slow Drift
+Direct path:
+- Starting pressure: 38.2 bar.
+- Requested pressure range: 39.2–50.2 bar.
+- Reported actual pressure range: 39.5–40.0 bar.
+
+Guarded path:
+- Starting pressure: 39.3 bar.
+- Requested pressure range: 40.3–51.3 bar.
+- Reported actual pressure range: 37.9–39.3 bar.
+
+No reported actual pressure exceeded 40 bar in either slow-drift
+script output. The guarded path's highest reported actual pressure
+was lower than the direct path's.
+
+6. Recovery observations
+Direct dashboard after testing:
+- Temperature: 73.8 °C.
+- Pressure: 40.0 bar.
+- H2 flow: 143.7 Nm3/h.
+- Displayed status: SYSTEM NORMAL; UNDEFENDED.
+
+Guarded dashboard after testing:
+- Temperature: 71.3 °C.
+- Pressure: 37.1 bar.
+- H2 flow: 139.4 Nm3/h.
+- Displayed status: PROTECTED.
+
+These displayed readings were within the configured ranges. The
+direct pressure reading was at the upper limit. Dashboard status
+alone does not establish the safety of every internal process state.
+
+7. Log and evidence limitations
+The displayed guard log contained entries timestamped 18:28 and
+17:59 from earlier scenarios. No new Slow Drift-specific log entry
+was confirmed. Repeated log rows were not treated as unique attack
+counts. Terminal results and dashboard readings were recorded in
+text files; screenshots still need to be captured and saved.
+
+8. Conclusion
+In the Attack Hold and False Data Injection tests, the direct path
+reported unsafe process values, while the guarded-path scripts
+reported values within configured limits and containment. In the
+Slow Drift test, actual pressure readings stayed at or below the
+40-bar limit on both paths, with a lower maximum reported on the
+guarded path. The observations support the usefulness of rule-based
+limits in these specific simulations; they do not prove protection
+against every attack.
+
+9. Safety and cleanup
+Tests were conducted against the authorized local training
+simulation. Do not run the DoS scenario without explicit instructor
+approval. Stop lab processes cleanly, confirm the relevant lab ports
+are no longer listening, preserve evidence, and restore the assigned
+snapshot if instructed.

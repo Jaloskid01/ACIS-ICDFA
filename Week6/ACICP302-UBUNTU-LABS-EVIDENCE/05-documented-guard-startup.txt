@@ -1,0 +1,46 @@
+105-cd plant_sim
+106-```
+107-
+108-Start the services in this order, one process per terminal:
+109-
+110-| Terminal | Command | Expected behaviour |
+111-|---|---|---|
+112-| 1 | `python3 plant.py` | Simulated process starts on loopback port 5020. |
+113:| 2 | `python3 guard.py` | Guard starts on loopback port 5021 and forwards accepted writes to the local plant. |
+114-| 3 | `python3 dashboard.py` | Direct dashboard starts on loopback port 8080. |
+115:| 4 | `python3 dashboard_guarded.py` | Guarded dashboard starts on loopback port 8081. |
+116-
+117-Open the dashboards in Ubuntu:
+118-
+119-- Direct view: <http://127.0.0.1:8080>
+120-- Guarded view: <http://127.0.0.1:8081>
+121-
+122-Initial values are approximately 67.0 °C, 34.0 bar and 90.0 Nm³/h; values may move slightly as the simulator runs. The guard is rule-based, not an AI model.
+123-
+124-## 7. Baseline and packet capture
+125-
+126-Before any demonstration, record the VM name, date/time, source commit, loopback check, disconnected network adapter, dashboard readings and normal observations. Save learner-created screenshots with relevant context.
+127-
+128-For the packet activity, capture only a short period of the Ubuntu guest’s loopback (`lo`) traffic for the documented Modbus/TCP lab port. Do not capture other interfaces or unrelated traffic. In Wireshark, identify one request and matching response, then relate the observed fields to your register map and process state. Stop the capture and store it only in the instructor-approved private evidence location.
+129-
+130-## 8. Run approved demonstrations
+131-
+132-Keep the four services running and use a fifth Ubuntu terminal. Activate the same environment and enter the source folder:
+133-
+134-```bash
+135-cd ~/course/ACICP302ICS-Network-Security-and-Attacks/labs/ot-security/student-lab-source
+136-source .venv/bin/activate
+137-cd plant_sim
+138-```
+139-
+140-Use the activity test plan and instructor approval. Select at least three permitted demonstrations; run them one at a time and use the supplied arguments unchanged. Each script is limited to the local simulator; port `5020` is the direct path and port `5021` is the guarded path.
+141-
+142-| Script | Demonstration | Supplied command pair |
+143-|---|---|---|
+144-| `attack_hold.py` | Requests a pressure value outside the simulated range | `python3 attack_hold.py 5020` then `python3 attack_hold.py 5021` |
+145-| `false_data_attack.py` | Sends the provided batches of out-of-range process values | `python3 false_data_attack.py 5020` then `python3 false_data_attack.py 5021` |
+146-| `slow_drift_attack.py` | Sends the provided incremental pressure changes | `python3 slow_drift_attack.py 5020` then `python3 slow_drift_attack.py 5021` |
+147-| `replay_attack.py` | Repeats the provided pressure write | `python3 replay_attack.py 5020` then `python3 replay_attack.py 5021` |
+148-| `recon_scan.py` | Reads the limited register range documented by the script | `python3 recon_scan.py 5020` then `python3 recon_scan.py 5021` |
+149-| `dos_attack.py` | Fixed demonstration of 200 read requests using 10 threads | Run only if the instructor approves; then use `python3 dos_attack.py 5020` followed by `python3 dos_attack.py 5021` |
+150-

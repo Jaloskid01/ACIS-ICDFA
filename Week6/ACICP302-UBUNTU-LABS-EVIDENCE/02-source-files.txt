@@ -1,0 +1,2 @@
+/home/icdfa/.config/tiling-assistant/tiledSessionRestore2.json
+/home/icdfa/.local/share/gnome-shell/session-active-history.json

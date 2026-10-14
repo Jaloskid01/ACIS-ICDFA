@@ -1,0 +1,55 @@
+ACICP302 — Activity 04 Risk Register
+Date: 14 October 2026
+Scope: Approved student lab source and local loopback only
+
+R1 — Modbus/TCP process-data exposure
+Evidence: plant.py lines 26-27 configure 127.0.0.1:5020.
+Inventory: 127.0.0.1:5020 was listening.
+Potential consequence: Unauthorized access to process telemetry;
+write capability could affect simulated process values if permitted.
+Status: Exposure beyond loopback was not observed or tested.
+Preventative controls: Keep the service loopback-bound; restrict clients
+and write operations according to the approved lab design.
+Detective controls: Review application logs and monitor unexpected
+Modbus write requests.
+
+R2 — Direct dashboard availability
+Evidence: dashboard.py line 224 binds the dashboard to 127.0.0.1:8080.
+Inventory: Port 8080 was not listening during the recorded check.
+Potential consequence: If enabled without adequate access controls,
+an exposed dashboard could disclose process information or permit
+unauthorized interaction through available routes.
+Status: Not listening at inventory time; route permissions not assessed.
+Preventative controls: Loopback binding, authentication where appropriate,
+and least privilege.
+Detective controls: Review dashboard access and application logs.
+
+R3 — Guard service and guarded dashboard
+Evidence: guard.py lines 19-22 configure the plant target at
+127.0.0.1:5020 and guard endpoint at 127.0.0.1:5021.
+dashboard_guarded.py lines 8-9 target 127.0.0.1:5021;
+line 265 binds the dashboard to 127.0.0.1:8081.
+Inventory: Port 8081 was listening; port 5021 was not listening.
+Potential consequence: If guard rules are incomplete or bypassable,
+unauthorized requests might not be adequately controlled.
+Status: Guard-rule completeness and enforcement were not tested.
+Preventative controls: Validate authorization and safety checks for
+all relevant operations; retain loopback binding.
+Detective controls: Review event logs and record rejected requests.
+
+R4 — Service-binding drift
+Evidence: The four application configurations specify loopback addresses.
+Inventory: Observed application listeners on 5020 and 8081 were loopback-
+bound. Ports 8080 and 5021 were not listening at the recorded time.
+Potential consequence: A future broad bind could expose lab services
+outside the intended boundary.
+Status: No non-loopback application listener among the observed services.
+Preventative controls: Keep explicit loopback bindings and isolate the VM.
+Detective controls: Recheck listener addresses and VM network settings.
+
+Conclusion:
+The source configuration reviewed is loopback-bound. At the recorded
+inventory time, the plant service on 5020 and guarded dashboard on 8081
+were listening; 8080 and 5021 were not. This is a time-specific snapshot.
+No external scanning, attack execution, process-value changes, or
+unauthorized service modifications were performed for this activity.
